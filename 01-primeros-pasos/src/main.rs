@@ -49,4 +49,21 @@ fn main() {
     println!("Hay {} días", dias.len());
     println!("{:?}", ceros); //<- Imprime el array completo
 
+
+    println!(" ");
+
+    println!("--04--");
+    saludar();
+
+    mostart_puntos("Diego", 28);
+
+
+}
+
+fn saludar(){
+    println!("Hola desde una función");
+}
+
+fn mostart_puntos(nombre: &str, puntos:u32){
+    println!("{nombre} tiene {puntos} puntos");
 }

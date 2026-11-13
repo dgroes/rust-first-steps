@@ -1,1 +1,1 @@
-C:\workspace\rust-first-steps\Basic\target\debug\Basic.exe: C:\workspace\rust-first-steps\Basic\src\main.rs
+C:\workspace\rust-first-steps\01-primeros-pasos\target\debug\Basic.exe: C:\workspace\rust-first-steps\01-primeros-pasos\src\main.rs
