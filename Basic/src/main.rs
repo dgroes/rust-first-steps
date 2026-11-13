@@ -35,4 +35,18 @@ fn main() {
     let puntos: u64 = 1_500;  // anotación explícita
 
     println!("{entero} {decimal} {activo} {puntos}");
+
+    println!("i8:  {} a {}", i8::MIN, i8::MAX);
+    println!("u8:  {} a {}", u8::MIN, u8::MAX);
+    println!("i32: {} a {}", i32::MIN, i32::MAX);
+    println!("u64: {} a {}", u64::MIN, u64::MAX);
+
+    println!("");
+    let dias: [&str; 3] = ["lunes", "martes", "miércoles"];
+    let ceros = [0; 5]; // cinco ceros
+
+    println!("El primero es {}", dias[0]);
+    println!("Hay {} días", dias.len());
+    println!("{:?}", ceros); //<- Imprime el array completo
+
 }
