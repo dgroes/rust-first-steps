@@ -1,5 +1,4 @@
 fn main() {
-
     println!("--01--");
     let nombre = "Ferris";
     let patas = 8;
@@ -27,12 +26,11 @@ fn main() {
     let espacios = espacios.len();
     println!("Hay {espacios} espacios");
 
-
     println!("--03--");
-    let entero = 42;          // i32
-    let decimal = 3.14;       // f64
-    let activo = true;        // bool
-    let puntos: u64 = 1_500;  // anotación explícita
+    let entero = 42; // i32
+    let decimal = 3.14; // f64
+    let activo = true; // bool
+    let puntos: u64 = 1_500; // anotación explícita
 
     println!("{entero} {decimal} {activo} {puntos}");
 
@@ -49,7 +47,6 @@ fn main() {
     println!("Hay {} días", dias.len());
     println!("{:?}", ceros); //<- Imprime el array completo
 
-
     println!(" ");
 
     println!("--04--");
@@ -57,13 +54,48 @@ fn main() {
 
     mostart_puntos("Diego", 28);
 
+    println!(" ");
+    println!("--5--");
+    let temperatura = 22;
 
+    if temperatura > 30 {
+        println!("Hace calor");
+    } else if temperatura > 15 {
+        println!("Se está bien");
+    } else {
+        println!("Hace frío");
+    }
+
+    let edad = 15;
+    let entrada = if edad >= 18 { "general" } else { "reducida" };
+
+    println!("Entrada {entrada}");
+
+    let mut intentoss = 0;
+
+    loop {
+        intentoss += 1;
+        println!("Intento {intentoss}");
+
+        if intentoss == 3 {
+            break;
+        }
+    }
+
+    for i in 1..4 {
+        println!("Vuelta {i}");
+    }
+
+    let edad = 15;
+    let entrada = if edad >= 18 { "general" } else { "reducida" };
+
+    println!("Entrada {entrada}");
 }
 
-fn saludar(){
+fn saludar() {
     println!("Hola desde una función");
 }
 
-fn mostart_puntos(nombre: &str, puntos:u32){
+fn mostart_puntos(nombre: &str, puntos: u32) {
     println!("{nombre} tiene {puntos} puntos");
 }

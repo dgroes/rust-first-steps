@@ -112,3 +112,96 @@ let largo = numeros.len(); // 4
 | **Tipos de datos** | Heterogéneos (distintos tipos) | Homogéneos (mismo tipo) |
 | **Tamaño** | Fijo | Fijo |
 | **Iteración** | No es directamente iterable | Iterable (`for x in arr`) |
+
+# Bucles en Rust (`loop`, `while`, `for`)
+
+Rust ofrece tres estructuras principales para repetir bloques de código según tus necesidades de control y rendimiento.
+
+---
+
+## 1. `loop` (Bucle Infinito)
+- **Uso**: Repite un bloque de código indefinidamente hasta que indiques de forma explícita cuándo salir mediante `break`.
+- **Característica clave**: A diferencia de otros lenguajes, en Rust `loop` puede **devolver un valor** al usar `break valor;`.
+
+```rust
+fn main() {
+    let mut contador = 0;
+
+    let resultado = loop {
+        contador += 1;
+        if contador == 5 {
+            break contador * 2; // Rompe el bucle y asigna 10 a 'resultado'
+        }
+    };
+
+    println!("Resultado: {resultado}");
+}
+```
+
+---
+
+## 2. `while` (Bucle Condicional)
+- **Uso**: Evalúa una condición booleana al inicio de cada iteración. Si es `true`, ejecuta el bloque; si es `false`, el bucle termina.
+- **Ideal para**: Casos en los que no sabes cuántas veces se repetirá el proceso, pero depende de que una condición cambie.
+
+```rust
+fn main() {
+    let mut n = 3;
+
+    while n > 0 {
+        println!("{n}...");
+        n -= 1;
+    }
+
+    println!("¡Despegue!");
+}
+```
+
+---
+
+## 3. `for` (Bucle Iterativo y Seguro)
+- **Uso**: Itera de forma segura sobre una secuencia de elementos (rangos, arrays, vectores). Es el bucle más utilizado en Rust porque elimina el riesgo de errores por índices fuera de límites.
+- **Rangos**: Se definen con `..` (excluye el límite superior) o `..=` (incluye el límite superior).
+
+```rust
+fn main() {
+    // Iterar en un rango del 1 al 3
+    for i in 1..=3 {
+        println!("Número: {i}");
+    }
+
+    // Iterar sobre elementos de un array
+    let lenguajes = ["Rust", "Python", "JavaScript"];
+    for lang in lenguajes {
+        println!("Lenguaje: {lang}");
+    }
+}
+```
+
+---
+
+## 4. Etiquetas de Bucle (`'etiqueta:`)
+- **Uso**: Permiten controlar bucles exteriores desde un bucle anidado usando `break 'etiqueta` o `continue 'etiqueta`.
+- **Sintaxis**: Comilla simple seguida del nombre y dos puntos (`'externo:`).
+
+```rust
+fn main() {
+    'externo: for fila in 1..=3 {
+        for columna in 1..=3 {
+            if fila * columna == 4 {
+                break 'externo; // Sale de ambos bucles de golpe
+            }
+        }
+    }
+}
+```
+
+---
+
+## Resumen de Referencia
+
+| Estructura | Cuándo usarla | Mecanismo de parada |
+| :--- | :--- | :--- |
+| **`loop`** | Bucle infinito o cuando necesitas que el bucle devuelva un valor. | Explícito (`break valor`) |
+| **`while`** | Cuando la repetición depende de que una condición booleana sea verdadera. | Condición evaluada a `false` |
+| **`for`** | Cuando quieres recorrer colecciones o rangos definidos de principio a fin. | Fin de la colección / rango |
