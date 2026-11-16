@@ -205,3 +205,85 @@ fn main() {
 | **`loop`** | Bucle infinito o cuando necesitas que el bucle devuelva un valor. | Explícito (`break valor`) |
 | **`while`** | Cuando la repetición depende de que una condición booleana sea verdadera. | Condición evaluada a `false` |
 | **`for`** | Cuando quieres recorrer colecciones o rangos definidos de principio a fin. | Fin de la colección / rango |
+
+# Ownership (Propiedad)
+El sistema de **Ownership** (propiedad) es la caracteristica más única de Rust y es lo que permite garantizar la seguridad de la memoria **sin necesidad de recolector basura** (*garbage collector*).
+## 1. Las Tres Reglas de Oro de la Propiedad
+Para entender cómo maneja Rust la memoria, solo debes seguir estas tres reglas fundamentales:
+
+1. Cada valor en Rust tiene un **propietario** (una variable que es dueña de ese valor).
+2. Solo puede haber **un propietario a la vez**.
+3. Cuando el propietario sale del ámbito (*scope*), el valor se **destruye** (se libera la memoria automáticamente).
+
+```rust
+fn main() {
+    {
+        let s = String::from("hola"); // 's' es el propietario del valor
+        println!("{s}");
+    } // <- Aquí termina el ámbito. 's' sale de alcance y Rust libera la memoria automáticamente.
+    
+    // println!("{s}"); // Error: 's' ya no existe aquí
+}
+```
+
+---
+
+## 2. Movimiento de Datos (*Move*)
+En Rust, cuando asignas una variable que vive en el *heap* (como un `String`) a otra, o la pasas a una función, **la propiedad se transfiere (se mueve)**. La variable original deja de ser válida.
+
+```rust
+fn main() {
+    let s1 = String::from("rust");
+    let s2 = s1; // La propiedad se mueve de s1 a s2. s1 queda invalidada.
+
+    // println!("{s1}"); // Error: valor usado después de un 'move'
+    println!("{s2}");     // Funciona perfectamente
+}
+```
+* **¿Por qué hace esto Rust?** Para evitar el "doble free" (liberar la misma memoria dos veces), lo cual causaría fallos de seguridad o corrupción de datos.
+
+---
+
+## 3. Clonación (*Clone*)
+Si necesitas conservar el valor original y además crear una copia independiente en el *heap*, debes solicitarlo explícitamente usando el método `.clone()`.
+
+```rust
+fn main() {
+    let s1 = String::from("rust");
+    let s2 = s1.clone(); // Se duplica el valor en memoria y se asigna a s2
+
+    println!("s1 = {s1}, s2 = {s2}"); // Ambos funcionan porque son independientes
+}
+```
+
+---
+
+## 4. Tipos que se Copian en el *Stack* (`Copy`)
+Los tipos de datos simples de tamaño conocido en tiempo de compilación (como los enteros `i32`, los booleanos `bool`, o los caracteres `char`) se almacenan por completo en el *stack*. 
+
+En estos tipos, la asignación **copia** los datos automáticamente en lugar de moverlos, por lo que la variable original sigue viva.
+
+```rust
+fn main() {
+    let x = 5;
+    let y = x; // Se copia el valor. x sigue siendo válido.
+
+    println!("x = {x}, y = {y}"); // ¡Funciona sin problemas!
+}
+```
+
+---
+
+## Resumen Clave
+
+| Concepto | Qué ocurre | Tipos típicos |
+| :--- | :--- | :--- |
+| **Move (Mover)** | Transfiere la propiedad; la variable original expira. | `String`, vectores (`Vec`), structs complejos. |
+| **Clone (Clonar)** | Duplica los datos explícitamente en memoria. | Cualquier tipo que implemente `Clone`. |
+| **Copy (Copiar)** | Copia implícita rápida en el *stack*. | Enteros, floats, booleanos, chars. |
+
+# Heap (montón)
+En programación y gestión de memoria, el heap es una zona de la memoria RAM destinada a almacenar datos **cuyo tamaño puede cambiar o es desconocido en tiempo de compilación**.<br>
+Para entenderlo mejor, suele contrastarse con el stack (la pila):
+- **El Stack (Pila)**: Funciona como una pila de platos. Los datos tienen un tamaño fijo y conocido de antemano (como un número entero i32 o un booleano). Las variables entran y salen de forma ordenada y rápida siguiendo el principio LIFO (Last In, First Out).
+- **El Heap (Montón)**: Es un espacio más flexible pero un poco más lento para acceder. Cuando creas algo que puede crecer dinámicamente —como un texto largo (String) o una lista de elementos que puede aumentar (Vec)—, Rust guarda esos datos en el heap y solo deja un pequeño puntero de tamaño fijo en el stack que apunta a dónde están los datos reales.
