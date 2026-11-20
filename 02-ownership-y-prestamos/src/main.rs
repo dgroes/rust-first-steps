@@ -1,4 +1,7 @@
 fn main() {
+    //EJERCICIOS PARA ENTENDER EL OWNERSHIP
+    println!("--OWNERSHIP--");
+    
     /* Objetivo: Tienes dos variables que necesitan mantener versiones distintas de un mismo mensaje en el heap. Haz que el código compile sin borrar ningún println!, asegurándote de que cada variable sea dueña de su propia memoria. */
 
     /* ```rust
@@ -105,4 +108,36 @@ fn main() {
     one();
     two();
     three();
+
+    // REFERENCIA
+    println!("");
+    println!("--REFERENCIA--");
+
+    fn prestamos() {
+        let s1 = String::from("hola");
+        let longitud = calcular_longitud(&s1); // prestamos s1
+        println!("«{s1}» tiene {longitud} bytes"); // s1 sigue siendo válida
+    }
+
+    fn calcular_longitud(s: &String) -> usize {
+        s.len()
+    } // s sale de ámbito, pero no es dueña de nada: no se libera nada
+    
+    prestamos();
+
+
+
+
+    fn prestamos_cambio() {
+        let mut s = String::from("hola");
+        cambiar(&mut s);
+        println!("{s}");
+    }
+
+    fn cambiar(texto: &mut String) {
+        texto.push_str(", mundo");
+    }
+
+    prestamos_cambio();
+
 }
