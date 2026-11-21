@@ -288,9 +288,200 @@ fn main() {
 | **Move (Mover)** | Transfiere la propiedad; la variable original expira. | Heap | `String`, vectores (`Vec`), structs complejos. |
 | **Clone (Clonar)** | Duplica los datos explícitamente en memoria. | Heap | Cualquier tipo que implemente `Clone`. |
 | **Copy (Copiar)** | Copia implícita rápida; la original sigue viva. | Stack | Enteros (`i32`), floats (`f64`), `bool`, `char`. |
-# C08:
-# C09:
-# C10:
+# C08: Referencias y Préstamos (*Borrowing*)
+En el capítulo anterior vimos que pasar un `String` a una función le **transfiere la propiedad**, lo que destruye la variable original en el `main` y nos obliga a devolverla o clonarla. 
+
+Para evitar esto sin perder rendimiento, Rust utiliza las **referencias** y el **préstamo (*borrowing*)**.
+
+
+## 1. ¿Qué es una Referencia (`&`)?
+
+Una referencia es como **un puntero seguro** que apunta a los datos de otra variable sin convertirse en su dueño. En lugar de mover la propiedad, le "prestas" el acceso a una función o a otra variable.
+
+- El símbolo **`&`** crea una referencia (un préstamo).
+- A esta acción se le llama **prestar (*borrowing*)**.
+
+```rust
+fn main() {
+    let s1 = String::from("hola");
+
+    // Pasamos una referencia (&s1) en lugar de la variable entera (s1)
+    calcular_longitud(&s1); 
+
+    // ✅ ¡Sigue funcionando! s1 no perdió la propiedad porque solo la prestó.
+    println!("En el main, s1 sigue siendo dueño de: {s1}");
+}
+
+// La función recibe una REFERENCIA a un String (&String)
+fn calcular_longitud(s: &String) {
+    println!("La longitud es de {} caracteres.", s.len());
+} // <- Aquí s sale de ámbito, pero como NO es dueña del heap, NO libera la memoria.
+```
+## 2. Referencias Inmutables por Defecto
+Por defecto, **las referencias son inmutables (de solo lectura)**. Quien recibe el préstamo puede leer el valor, pero no puede modificarlo.
+```rust
+fn main() {
+    let s = String::from("hola");
+
+    modificar_texto(&s);
+}
+
+fn modificar_texto(texto: &String) {
+    // ❌ ERROR DE COMPILACIÓN: No puedes modificar un valor prestado inmutablemente
+    // texto.push_str(" mundo"); 
+}
+```
+## 3. Referencias Mutables (`&mut`)
+Si necesitas que una función (o otra variable) pueda modificar los datos prestados, debes usar referencias mutables usando `&mut`.
+Para ello, se deben cumplir dos condiciones estrictas:
+1. La variable original debe declararse como mutable (`let mut`).
+2. La referencia debe declararse como mutable (`&mut`).
+```rust
+fn main() {
+    let mut s = String::from("hola"); // 1. Variable declarada como mutable
+
+    println!("Antes: {s}");
+
+    agregar_mundo(&mut s); // 2. Pasamos una referencia mutable (&mut)
+
+    println!("Después: {s}"); // Imprime: "hola, mundo"
+}
+
+// La función recibe un préstamo mutable (&mut String)
+fn agregar_mundo(texto: &mut String) {
+    texto.push_str(", mundo"); // ✅ Sí se puede modificar porque el préstamo es mutable
+}
+```
+## 4. La Regla de Oro del Préstamo (Prevenir el Caos)
+Para garantizar la seguridad de la memoria y evitar condiciones de carrera en hilos, Rust impone una regla estricta sobre los préstamos:
+> Puedes tener tantas referencias inmutables (`&`) como quieras, O una sola referencia mutable (`&mut`) a la vez en el mismo ámbito. Nunca ambas al mismo tiempo.
+
+Ejemplo de lo que NO se puede hacer:
+```rust
+fn main() {
+    let mut s = String::from("hola");
+
+    let r1 = &s; // Préstamo inmutable 1
+    let r2 = &s; // Préstamo inmutable 2 (¡Todo bien hasta aquí!)
+
+    // let r3 = &mut s; // ❌ ERROR: No puedes crear un préstamo mutable mientras hay préstamos inmutables activos.
+
+    println!("{r1} y {r2}");
+} // Los préstamos r1 y r2 terminan aquí. A partir de esta línea, ya podrías crear un &mut si quisieras.
+```
+
+# C09: Desreferenciación (`*`)
+Imagina que tienes una caja con el número `10` adentro, y en vez de darle la caja a la función `sumar_bonus`, le pasas **un papelito con la dirección de la caja** (`&mut puntos`).
+
+Dentro de `sumar_bonus`, el parámetro `puntos` no es el número `10` en sí: es **el papelito con la dirección** (un `&mut i32`).
+
+- Si hicieras `puntos += 5` sin el `*`, estarías intentando sumarle `5` a la **dirección**, no al número guardado en ella (y el compilador te lo impedirá).
+- El asterisco **`*`** (operador de **desreferencia**) significa: *"ve hasta la dirección que indica este papelito y accede al valor real que está guardado ahí"*.
+
+
+## Cómo funciona `*puntos += 5`
+
+```rust
+fn main() {
+    let mut puntos = 10;
+    sumar_bonus(&mut puntos);
+    println!("Puntos: {puntos}"); // Imprime: Puntos: 15
+}
+
+fn sumar_bonus(puntos: &mut i32) {
+    *puntos += 5; // *puntos accede al i32 real al que apunta la referencia
+}
+```
+
+1. Sigue la referencia hasta el valor `10` original en `main`.
+2. Le suma `5` (el valor pasa a ser `15`).
+3. Como la referencia es mutable (`&mut`), deja `15` actualizado en la variable original.
+
+
+## ¿Por qué no se usa `*` con métodos como `.push_str()`?
+
+Cuando llamas a un método usando un punto (`.`), como `texto.push_str(", mundo")`, Rust aplica **auto-desreferencia** (*deref coercion*): el compilador ve lo que el método necesita y desreferencia por debajo automáticamente.
+
+En cambio, al usar operadores como `+=` o al reasignar un valor (`*x = 20;`), no hay llamada a método con punto, por lo que debes escribir `*` explícitamente para modificar el valor al que apunta la referencia.
+
+
+## Ejemplo rápido
+
+```rust
+fn main() {
+    let mut vida = 100;
+    let ref_vida: &mut i32 = &mut vida; // ref_vida es una referencia mutable a 'vida'
+
+    *ref_vida = 80; // Modifica el valor real de 'vida'
+
+    println!("Vida actual: {vida}"); // Imprime: Vida actual: 80
+}
+```
+# C10: El *Borrow Checker* (Verificador de Préstamos) en Rust
+
+El **Borrow Checker** es una parte del compilador de Rust que revisa tu código **antes de compilarlo y ejecutarlo** para comprobar que todas las reglas de **Ownership** y **préstamos (*borrowing*)** se cumplen.
+
+Su trabajo es evitar errores de memoria en tiempo de ejecución —como punteros colgantes (*dangling pointers*), fugas de memoria o condiciones de carrera— **sin usar recolector de basura** (*garbage collector*).
+
+
+## 1. ¿Qué revisa exactamente?
+
+Cuando prestas datos con `&` o `&mut`, el *Borrow Checker* verifica principalmente tres cosas:
+
+1. **Que no haya conflictos entre lectura y escritura:** Puedes tener varias referencias inmutables (`&`) a la vez, o una sola referencia mutable (`&mut`), pero nunca ambas solapadas sobre el mismo dato.
+2. **Que la referencia no sobreviva al dueño:** Una referencia nunca puede apuntar a un dato que ya fue destruido al salir de su ámbito (*scope*).
+3. **Que no uses un dato que ya fue movido:** Si un valor en el *heap* cambió de dueño (*move*), ya no puedes leerlo ni prestarlo desde la variable anterior.
+
+
+## 2. Ejemplos de lo que atrapa el *Borrow Checker*
+
+### Caso A: Mezclar `&` y `&mut` al mismo tiempo
+```rust
+fn main() {
+    let mut s = String::from("hola");
+
+    let r1 = &s;
+    let r2 = &mut s; // ❌ Error del borrow checker: no se puede prestar mutablemente mientras hay préstamos inmutables activos
+
+    println!("{r1}");
+}
+```
+
+### Caso B: Referencia colgante (*dangling reference*)
+```rust
+// ❌ Error: `r` apuntaría a un `String` que se destruye al terminar `colgar()`
+fn colgar() -> &String {
+    let s = String::from("temporal");
+    &s
+} // `s` se libera aquí, por lo que la referencia quedaría inválida
+```
+
+
+## 3. ¿Cómo se comporta en la práctica? (Ámbito real de un préstamo)
+
+En Rust moderno, un préstamo termina **en la última línea donde se usa esa referencia**, no necesariamente al cerrar las llaves `{}` del bloque.
+
+```rust
+fn main() {
+    let mut s = String::from("rust");
+
+    let r1 = &s;
+    println!("{r1}"); // Aquí termina el último uso de `r1`
+
+    let r2 = &mut s; // ✅ Válido: `r1` ya no se vuelve a usar después
+    r2.push_str("!");
+    println!("{r2}");
+}
+```
+
+
+## Resumen Clave
+
+| Aspecto | Qué hace el *Borrow Checker* |
+| :--- | :--- |
+| **Cuándo actúa** | En tiempo de compilación (antes de ejecutar el programa). |
+| **Qué protege** | La validez de las referencias y la exclusividad de las mutaciones. |
+| **Costo en ejecución** | **Cero** (todo se verifica antes de correr el código). |
 # C11:
 # C12:
 # C13:
