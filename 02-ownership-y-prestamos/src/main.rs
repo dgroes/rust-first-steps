@@ -1,7 +1,7 @@
 fn main() {
     //EJERCICIOS PARA ENTENDER EL OWNERSHIP
     println!("--OWNERSHIP--");
-    
+
     /* Objetivo: Tienes dos variables que necesitan mantener versiones distintas de un mismo mensaje en el heap. Haz que el código compile sin borrar ningún println!, asegurándote de que cada variable sea dueña de su propia memoria. */
 
     /* ```rust
@@ -98,8 +98,6 @@ fn main() {
                 // Añadir la letra a nuevo texto (primera vuelta: B; segunda vuelta: *; tercera vuelta: n, etc.)
                 nuevo_texto.push(c);
             }
-
-            
         }
 
         (nuevo_texto, contador)
@@ -122,11 +120,8 @@ fn main() {
     fn calcular_longitud(s: &String) -> usize {
         s.len()
     } // s sale de ámbito, pero no es dueña de nada: no se libera nada
-    
+
     prestamos();
-
-
-
 
     fn prestamos_cambio() {
         let mut s = String::from("hola");
@@ -139,5 +134,65 @@ fn main() {
     }
 
     prestamos_cambio();
+
+    println!("");
+    println!("--SLICE--");
+
+    fn slice_one() {
+        let s = String::from("hola mundo");
+        let hola = &s[0..4];
+        let mundo = &s[5..10];
+        println!("{hola} | {mundo}");
+    }
+
+    slice_one();
+
+
+    
+    let frase = String::from("Dalpo es guapo");
+
+    fn primera_palabra(s: &String) -> &str {
+        let bytes = s.as_bytes();
+        for i in 0..bytes.len() {
+            if bytes[i] == b' ' {
+                return &s[..i];
+            }
+        }
+        &s[..]
+    }
+    let first_word = primera_palabra(&frase);
+
+    println!("Primera palabra de '{frase}' es: '{first_word}'");
+
+
+    /* Completa sin_extension, que devuelve el nombre de un fichero sin su extensión: 
+    lo que hay antes del primer punto (si no hay punto, el nombre entero). Además, 
+    ahora no compila porque recibe &String y main le pasa literales: cambia el parámetro 
+    a &str para que acepte cualquier texto. 
+        SALIDA ESPERADA:
+        foto
+        notas
+        README
+    */
+
+    fn puntos() {
+        let archivo = String::from("foto.png");
+        println!("{}", sin_extension(&archivo));
+        println!("{}", sin_extension("notas.txt"));
+        println!("{}", sin_extension("README"));
+    }
+
+    
+    fn sin_extension(nombre: &str) -> &str {
+        let bytes = nombre.as_bytes();
+        for i in 0..bytes.len(){
+            if bytes[i] == b'.'{
+                return &nombre[..i];
+            }
+        }
+        nombre
+    
+    }
+    puntos();
 
 }
